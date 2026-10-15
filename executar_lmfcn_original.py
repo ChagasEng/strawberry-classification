@@ -43,9 +43,7 @@ class OriginalProtocol:
     width: int = 350
     height: int = 230
     augmentation: int = 1
-    # Valor padrao do main.py original. O exemplo antigo do README usava
-    # explicitamente --norm 0, mas o comando dos morangos deixa o padrao 1.
-    normalization: int = 1
+    normalization: int = 0
     seed: int = 0
     batch_size: int = 256
 
@@ -130,8 +128,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--setting", default="setting1")
-    parser.add_argument("--output", "--outdir", dest="output", type=Path, default=None)
-    parser.add_argument("--outfile", default="lmfcn_original")
+    parser.add_argument("--output", type=Path, default=None)
     parser.add_argument(
         "--data-protocol",
         choices=("external", "holdout"),
@@ -142,11 +139,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--limit-per-class", type=int, default=0, help="Somente para smoke test; zero usa todas as imagens")
-    parser.add_argument("--epochs", "--epoch", dest="epochs", type=int, default=defaults.epochs)
+    parser.add_argument("--epochs", type=int, default=defaults.epochs)
     parser.add_argument("--gamma", type=float, default=defaults.gamma)
     parser.add_argument("--relax", type=float, default=defaults.relax)
     parser.add_argument("--lr", type=float, default=defaults.learning_rate)
-    parser.add_argument("--features", "--feature", dest="features", type=int, default=defaults.features)
+    parser.add_argument("--features", type=int, default=defaults.features)
     parser.add_argument("--shake", type=int, default=defaults.shake)
     parser.add_argument("--svclose", type=int, default=defaults.svclose)
     parser.add_argument("--shclose", type=int, default=defaults.shclose)
@@ -236,7 +233,7 @@ def main() -> None:
         norm=args.norm,
         seed=args.seed,
         outdir=str(output),
-        outfile=args.outfile,
+        outfile="lmfcn_original",
         batch=args.batch,
         i=None,
     )
@@ -291,7 +288,6 @@ def main() -> None:
         "setting": args.setting,
         "data_protocol": args.data_protocol,
         "validation_source": "dataset/test" if args.data_protocol == "external" else "20% of setting",
-        "original_output_name": args.outfile,
         "split_seed": args.split_seed,
         "counts": dataset_counts,
         "protocol": asdict(protocol),
