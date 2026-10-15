@@ -1,84 +1,215 @@
-# Classificação de morangos com CNN + SVM
+# Classificação de morangos: fresco ou podre
 
-Este repositório contém o experimento Python em [`experimento_lmfcn/`](experimento_lmfcn/) e usa a ideia do [LMFCN de Jonathan Matos](https://github.com/jonathandematos/lmfcn). O código de referência está em [`codigo_jonathan/`](codigo_jonathan/). As imagens em `Dataset/` não são incluídas no Git.
+Este projeto treina modelos de visão computacional para responder a uma pergunta simples:
 
-Os resultados obtidos até agora estão em [`resumo/`](resumo/README.md).
+> **O morango da foto está fresco ou podre?**
 
-## 1. Clonar e baixar o Dataset
+O repositório contém experimentos com **YOLO11**, **MobileNetV2** e **LMFCN + SVM**. Ele também guarda os modelos treinados, as métricas e o código usado nos testes com Raspberry Pi.
 
-Clone este repositório e entre na pasta criada pelo `git clone`. Depois, abra a [pasta do Dataset no Google Drive](https://drive.google.com/drive/folders/1d7YR44NljiyG3dp57XR8DcorJYzW8gAY) e use **Fazer download**. Extraia o arquivo ZIP baixado. Coloque o conteúdo extraído na raiz do repositório com o nome exato `Dataset` (D maiúsculo).
+## Se você só quer ver o resultado
 
-Antes de rodar os comandos, confira se os arquivos ficaram nestes caminhos:
+Não é necessário instalar nada.
 
-```text
-moranguinho/
-├── Dataset/
-│   └── Nusrat Sultana/
-│       └── Original/
-│           ├── FreshStrawberry/
-│           │   └── ... imagens ...
-│           └── RottenStrawberry/
-│               └── ... imagens ...
-└── experimento_lmfcn/
-    └── requirements.txt
+- Resultado correto da execução do LMFCN original: [`resultados_lmfcn_original/setting1_treino_completo/resultados.json`](resultados_lmfcn_original/setting1_treino_completo/resultados.json)
+- Explicação dessa execução: [`resultados_lmfcn_original/README.md`](resultados_lmfcn_original/README.md)
+- Comparação dos modelos: [`RESULTADOS_COMPARATIVOS.md`](RESULTADOS_COMPARATIVOS.md)
+- Arquivos preparados para o Raspberry Pi: [`modelos_raspberry_pi/`](modelos_raspberry_pi/)
+
+Na execução correta do LMFCN original:
+
+- o modelo treinou com **1.200 imagens** do `setting1`: 600 frescas e 600 podres;
+- a validação foi feita nas **200 imagens separadas** da pasta `test`: 100 frescas e 100 podres;
+- nenhuma imagem de `test` foi usada no treinamento;
+- a melhor acurácia observada em `test` foi **85%**, na época 4;
+- o recall foi **79% para morangos frescos** e **91% para morangos podres**;
+- o F1 macro foi **84,95%**.
+
+## O que existe em cada pasta
+
+| Caminho | Conteúdo |
+|---|---|
+| `codigo_jonathan/` | Código LMFCN original de Jonathan Matos, preservado como referência. |
+| `executar_lmfcn_original.py` | Adaptador que executa o código original no dataset de morangos. Ele ajusta entrada, dispositivo e salvamento; não troca o algoritmo LMFCN. |
+| `resultados_lmfcn_original/` | Manifestos, métricas, CNN, SVM e documentação da execução original. |
+| `experimento_lmfcn/` | Implementação modular inspirada no LMFCN. Não é uma reprodução literal. |
+| `testes YOLO/` | Scripts, resultados e artefatos dos experimentos com YOLO. |
+| `testes MobileNetV2/` | Scripts dos experimentos com MobileNetV2. |
+| `modelos_raspberry_pi/` | Modelos e scripts preparados para inferência no Raspberry Pi. |
+| `resumo/` | Resumos de execuções anteriores. |
+
+## Antes de começar
+
+Você precisa de:
+
+1. Python 3.9 ou mais recente;
+2. Git;
+3. espaço livre para instalar o PyTorch;
+4. a pasta do dataset no computador.
+
+Para confirmar se o Python está instalado, abra o PowerShell e execute:
+
+```powershell
+py --version
 ```
 
-O programa usa as imagens dessas duas pastas `Original`. Se a extração criar uma pasta extra, como `Dataset/Dataset/`, mova o conteúdo da pasta interna para a externa. As outras pastas do download podem permanecer dentro de `Dataset`; elas não entram neste experimento. `Dataset/` está no `.gitignore`, então as imagens ficam apenas no computador de quem executa.
+Se aparecer algo como `Python 3.12.1`, está tudo certo. Se o comando não existir, instale o Python pelo [site oficial](https://www.python.org/downloads/) e marque a opção para adicionar o Python ao `PATH`.
 
-## 2. Instalar o Python e as dependências
+## Baixar este projeto
 
-Instale Python 3.9 ou superior, com `venv` e `pip`. É recomendável ter espaço livre para instalar o PyTorch. Todos os comandos abaixo devem começar na **raiz do repositório** após o clone.
+No PowerShell:
 
-### Windows (PowerShell)
+```powershell
+git clone https://github.com/ChagasEng/strawberry-classification.git
+cd strawberry-classification
+```
+
+O download é grande porque o repositório contém modelos e resultados de treinamento.
+
+## Entenda os dois formatos de dataset
+
+Este repositório trabalha com dois formatos. Eles servem para experimentos diferentes e não devem ser confundidos.
+
+### 1. `datasetmorangonovo`: comparação e LMFCN original
+
+Este é o formato usado no resultado de **85%**. A pasta pode ficar em qualquer lugar do computador, desde que você informe o caminho no comando.
+
+```text
+datasetmorangonovo/
+|-- setting1/
+|   |-- fresh/       # 600 imagens
+|   `-- rotten/      # 600 imagens
+`-- test/
+    |-- fresh/       # 100 imagens
+    `-- rotten/      # 100 imagens
+```
+
+O `setting1` inteiro é usado para treinamento. A pasta `test` é usada somente para validar o modelo.
+
+### 2. `Dataset`: exemplo modular menor
+
+Este formato é usado apenas pelo exemplo disponível em `experimento_lmfcn/`.
+
+Baixe as imagens pela [pasta no Google Drive](https://drive.google.com/drive/folders/1d7YR44NljiyG3dp57XR8DcorJYzW8gAY), extraia o ZIP e deixe a estrutura assim:
+
+```text
+strawberry-classification/
+|-- Dataset/
+|   `-- Nusrat Sultana/
+|       `-- Original/
+|           |-- FreshStrawberry/
+|           `-- RottenStrawberry/
+`-- experimento_lmfcn/
+```
+
+Se aparecer `Dataset/Dataset/Nusrat Sultana`, existe uma pasta duplicada. Mova `Nusrat Sultana` para a primeira pasta `Dataset`.
+
+As imagens de `Dataset/` não são enviadas ao GitHub porque essa pasta está no `.gitignore`.
+
+## Reproduzir o LMFCN original
+
+Use esta opção para executar o código original do Jonathan com o protocolo do `datasetmorangonovo`.
+
+### Passo 1 — criar o ambiente Python
+
+Execute na raiz do repositório:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements_lmfcn_original.txt
+```
+
+### Passo 2 — conferir o dataset
+
+Substitua o caminho abaixo pelo local real da sua pasta:
+
+```powershell
+Get-ChildItem "C:\caminho\para\datasetmorangonovo"
+```
+
+O resultado precisa mostrar pelo menos `setting1` e `test`.
+
+### Passo 3 — treinar e validar
+
+```powershell
+.\.venv\Scripts\python.exe .\executar_lmfcn_original.py `
+  --dataset "C:\caminho\para\datasetmorangonovo" `
+  --setting setting1 `
+  --data-protocol external `
+  --threads 4
+```
+
+O parâmetro `external` significa exatamente isto:
+
+```text
+setting1 completo -> treinamento
+test separado     -> validação
+```
+
+Ao terminar, os arquivos serão gravados em:
+
+```text
+datasetmorangonovo/resultados_lmfcn_original/setting1_external/
+```
+
+O arquivo mais importante é `resultados.json`, que contém as métricas de todas as épocas.
+
+> **Observação:** `modelo_final.pt` representa a última época. O histórico em `resultados.json` informa qual época teve a melhor validação. Na execução registrada neste repositório, a melhor foi a época 4.
+
+## Executar a implementação modular
+
+Esta versão é mais simples de modificar, mas é apenas **inspirada** no LMFCN original.
+
+### Windows
 
 ```powershell
 cd experimento_lmfcn
 py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-Os exemplos usam o Python do ambiente virtual diretamente; não é necessário ativar o ambiente nem alterar a política de execução do PowerShell. Se `py` não estiver disponível, instale o Python pelo [site oficial](https://www.python.org/downloads/) com o Python Launcher.
-
-### Linux
-
-```bash
-cd experimento_lmfcn
-python3 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.txt
-```
-
-Em distribuições que separam o módulo `venv`, instale o pacote correspondente à sua versão do Python (por exemplo, `python3-venv`) antes de criar o ambiente.
-
-### macOS
-
-```bash
-cd experimento_lmfcn
-python3 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.txt
-```
-
-## 3. Preparar os dados, treinar e classificar
-
-Execute os comandos **dentro de `experimento_lmfcn/`**, depois da instalação acima.
-
-### Windows (PowerShell)
-
-```powershell
 .\.venv\Scripts\python.exe -m morango_lmfcn prepare --dataset ..\Dataset
 .\.venv\Scripts\python.exe -m morango_lmfcn train
+```
+
+Para classificar uma imagem depois do treinamento:
+
+```powershell
 .\.venv\Scripts\python.exe -m morango_lmfcn predict "..\Dataset\Nusrat Sultana\Original\FreshStrawberry\FreshStrawberry_142.jpg"
 ```
+
+O programa imprimirá `fresco` ou `podre`.
 
 ### Linux e macOS
 
 ```bash
+cd experimento_lmfcn
+python3 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt
 ./.venv/bin/python -m morango_lmfcn prepare --dataset ../Dataset
 ./.venv/bin/python -m morango_lmfcn train
-./.venv/bin/python -m morango_lmfcn predict "../Dataset/Nusrat Sultana/Original/FreshStrawberry/FreshStrawberry_142.jpg"
 ```
 
-Substitua o caminho do último comando por qualquer imagem que queira classificar. O resultado é `fresco` ou `podre`.
+## Problemas comuns
 
-`prepare` cria `saida/manifests/train.txt`, `val.txt` e `test.txt` a partir das 400 imagens originais: 280 para treino, 60 para validação e 60 para teste. Cada linha tem `classe;caminho_da_imagem`, onde `0` significa fresco e `1` significa podre. `train` salva a CNN, o SVM e as métricas em `saida/model/`. Esses arquivos também estão no `.gitignore`. O treino escolhe automaticamente CUDA, MPS (macOS compatível) ou CPU.
+### “Python não foi encontrado”
 
-Os manifestos guardam caminhos absolutos. Se você mover o repositório ou o `Dataset`, apague `experimento_lmfcn/saida/manifests/` e execute `prepare` novamente antes de treinar. Para ajustar épocas, tamanho das imagens e outros parâmetros, use `train --help` com o mesmo executável Python mostrado acima. Mais detalhes sobre o modelo estão no [README do experimento](experimento_lmfcn/README.md).
+Instale o Python e reabra o terminal. No Windows, confirme que o Python Launcher foi instalado.
+
+### “Nenhuma imagem encontrada”
+
+O caminho do dataset está errado ou os nomes das pastas não correspondem à estrutura mostrada acima.
+
+### “CUDA não está disponível”
+
+Não é um erro obrigatório. O executor usa CPU automaticamente quando não encontra uma GPU NVIDIA compatível.
+
+### O treinamento parece parado
+
+O LMFCN original atualiza muitos vetores de suporte individualmente. Em CPU, uma época pode passar algum tempo sem imprimir novas mensagens. Aguarde até aparecer a próxima linha `Epoch`.
+
+### Mudei o dataset de lugar e o exemplo modular parou
+
+Apague `experimento_lmfcn/saida/manifests/` e execute novamente o comando `prepare`. Os manifestos guardam caminhos absolutos.
+
+## Referência
+
+O LMFCN usado como base foi desenvolvido por Jonathan Matos: [jonathandematos/lmfcn](https://github.com/jonathandematos/lmfcn).

@@ -4,6 +4,7 @@
 /Dataset/
 /experimento_lmfcn/saida/
 /experimento_lmfcn/.venv/
+.venv/
 __pycache__/
 *.py[cod]
 .venv-yolo/
