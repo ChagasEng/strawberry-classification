@@ -1,46 +1,76 @@
-# Execucao do LMFCN original
+# Execução do LMFCN original
 
-O executor [`executar_lmfcn_original.py`](executar_lmfcn_original.py) utiliza diretamente os arquivos de
-`codigo_jonathan/lmfcn`, sem alterar a arquitetura, o otimizador, as perdas ou o ciclo de treinamento.
-Ele adapta somente o dispositivo (CPU ou CUDA), gera os manifestos e salva os artefatos da execucao.
+O arquivo [`executar_lmfcn_original.py`](../executar_lmfcn_original.py) carrega diretamente o LMFCN de
+`codigo_jonathan/lmfcn`. Ele não substitui a rede nem o SVM: apenas monta as listas do novo dataset,
+seleciona CPU ou CUDA e salva os arquivos que o código original deixava de persistir.
 
-## Protocolo executado
+## Protocolo usado
 
-- treino com o `setting1` balanceado completo: 600 imagens `fresh` e 600 `rotten`;
-- validacao exclusivamente na pasta externa `test`: 100 imagens por classe;
-- nenhuma imagem do `setting1` foi retirada para validacao interna;
-- parametros do exemplo para imagens fornecido pelo autor: 5 epocas, 350 x 230 px, 2 caracteristicas,
-  `gamma=1`, `relax=1`, Adadelta com `lr=0.1`, `svclose=5`, `shclose=0`, `wrclose=1`, `norm=0`,
-  `aug=1` e batch 256;
-- semente do modelo: 0.
+- treino: todas as 1.200 imagens de `setting1` (600 `fresh` e 600 `rotten`);
+- validação: somente as 200 imagens da pasta separada `test` (100 de cada classe);
+- imagens de `test` usadas no treino: **zero**;
+- épocas: 5;
+- tamanho das imagens: 275 x 183 px;
+- características: 16;
+- `relax=10`, `lr=1.0`, `svclose=5`, `wrclose=2`, `shclose=0` e batch 16;
+- padrões herdados do `main.py` original: `gamma=1`, `shake=0`, `aug=1`, `norm=1` e `seed=0`.
 
-Comando usado:
+O comando original recebido foi:
 
-```powershell
-.\.venv-yolo\Scripts\python.exe .\executar_lmfcn_original.py `
-  --setting setting1 `
-  --data-protocol external `
-  --output C:\Users\matheus\Documents\datasetmorangonovo\resultados_lmfcn_original\setting1_treino_completo `
-  --threads 4
+```bash
+python main.py --epoch 5 --relax 10 --lr 1.0 --feature 16 --svclose 5 --wrclose 2 --shclose 0 --width 275 --height 183 --outdir strawberry_out --outfile strawberry_1 --batch 16 -i /home/jonathan/git/lmfcn/strawberry/strawberry_analysis/dataset/fold1-train.txt
 ```
 
-## Resultado
+O caminho em `-i` era uma lista de imagens existente apenas no computador do autor. Para aplicar os
+mesmos parâmetros ao `datasetmorangonovo` e validar na pasta `test`, foi executado o equivalente:
 
-A melhor validacao na pasta `test` ocorreu na epoca 4:
+```powershell
+.\.venv\Scripts\python.exe .\executar_lmfcn_original.py `
+  --dataset "C:\caminho\para\datasetmorangonovo" `
+  --setting setting1 --data-protocol external `
+  --epoch 5 --relax 10 --lr 1.0 --feature 16 `
+  --svclose 5 --wrclose 2 --shclose 0 `
+  --width 275 --height 183 `
+  --outdir ".\resultados_lmfcn_original\strawberry_out" `
+  --outfile strawberry_1 --batch 16 --threads 4
+```
 
-- acuracia: **85,00%**;
-- recall `fresh`: **79,00%**;
-- recall `rotten`: **91,00%**;
-- F1 macro derivado da matriz de confusao: **84,95%**.
+## Resultado no conjunto `test`
 
-Historico da validacao em `test`: 62,5%, 73,5%, 75,0%, 85,0% e 71,0%.
+| Época | Acurácia | Recall fresh | Recall rotten |
+|---:|---:|---:|---:|
+| 1 | 80,5% | 73% | 88% |
+| 2 | 95,5% | 95% | 96% |
+| 3 | 98,0% | 96% | 100% |
+| 4 | 99,0% | 98% | 100% |
+| 5 | **99,5%** | **99%** | **100%** |
 
-Os resultados e artefatos foram gravados em
-`C:\Users\matheus\Documents\datasetmorangonovo\resultados_lmfcn_original\setting1_treino_completo`.
+Na melhor época, o modelo acertou **199 das 200 imagens**. A matriz de confusão é:
 
-## Limite de reprodutibilidade
+```text
+                 previsto fresh   previsto rotten
+fresh real              99                 1
+rotten real              0               100
+```
 
-O codigo-fonte do LMFCN foi preservado, mas a execucao utilizou Python 3.12, PyTorch 2.14.1 CPU e
-scikit-learn 1.9.1. O ambiente citado pelo autor era Python 3.9, PyTorch 1.11, CUDA 11.3,
-torchvision 0.12 e scikit-learn 1.0.2. Portanto, esta e uma execucao literal do algoritmo em um
-ambiente compativel atual, nao uma reproducao numerica bit a bit do ambiente antigo.
+- acurácia: **99,5%**;
+- acurácia balanceada: **99,5%**;
+- F1 macro calculado pela matriz: **99,5%**.
+
+Os arquivos dessa execução estão em [`strawberry_out/`](strawberry_out/):
+
+- `resultados.json`: parâmetros, ambiente e métricas de todas as épocas;
+- `modelo_final.pt`: pesos da CNN na época 5;
+- `svm_final.joblib`: classificador SVM final;
+- `referencia_final.npz`: características de referência e gamma;
+- `manifests/`: listas exatas de treino e validação usadas.
+
+## Reprodutibilidade
+
+A execução registrada usou Python 3.12.15, PyTorch 2.14.1 CPU e scikit-learn 1.9.1. O ambiente antigo
+do autor usava versões anteriores dessas bibliotecas. Portanto, o algoritmo e os parâmetros foram
+preservados, mas resultados bit a bit idênticos em outro computador não são garantidos.
+
+Uma execução anterior, com os parâmetros do exemplo genérico de imagens (`feature=2`, `relax=1`,
+`lr=0.1`, 350 x 230 e batch 256), permanece em [`setting1_treino_completo/`](setting1_treino_completo/)
+e atingiu 85%. Ela não é o resultado principal atual.

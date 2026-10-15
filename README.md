@@ -1,6 +1,8 @@
 # Classificação de morangos: fresco ou podre
 
-**********os resultados tao dentro da pasta datasetmorango novo*******
+> **Onde estão os resultados?** Os arquivos gerados originalmente ficam na pasta
+> `datasetmorangonovo/resultados_lmfcn_original`. A execução principal também foi copiada para
+> [`resultados_lmfcn_original/strawberry_out/`](resultados_lmfcn_original/strawberry_out/) neste repositório.
 
 Este projeto treina modelos de visão computacional para responder a uma pergunta simples:
 
@@ -12,19 +14,20 @@ O repositório contém experimentos com **YOLO11**, **MobileNetV2** e **LMFCN + 
 
 Não é necessário instalar nada.
 
-- Resultado correto da execução do LMFCN original: [`resultados_lmfcn_original/setting1_treino_completo/resultados.json`](resultados_lmfcn_original/setting1_treino_completo/resultados.json)
+- Resultado atual do LMFCN original: [`resultados_lmfcn_original/strawberry_out/resultados.json`](resultados_lmfcn_original/strawberry_out/resultados.json)
 - Explicação dessa execução: [`resultados_lmfcn_original/README.md`](resultados_lmfcn_original/README.md)
 - Comparação dos modelos: [`RESULTADOS_COMPARATIVOS.md`](RESULTADOS_COMPARATIVOS.md)
 - Arquivos preparados para o Raspberry Pi: [`modelos_raspberry_pi/`](modelos_raspberry_pi/)
 
-Na execução correta do LMFCN original:
+Na execução atual do LMFCN original:
 
 - o modelo treinou com **1.200 imagens** do `setting1`: 600 frescas e 600 podres;
 - a validação foi feita nas **200 imagens separadas** da pasta `test`: 100 frescas e 100 podres;
 - nenhuma imagem de `test` foi usada no treinamento;
-- a melhor acurácia observada em `test` foi **85%**, na época 4;
-- o recall foi **79% para morangos frescos** e **91% para morangos podres**;
-- o F1 macro foi **84,95%**.
+- foram usados os parâmetros do comando `strawberry_1` enviado pelo autor;
+- a melhor acurácia observada em `test` foi **99,5%**, na época 5;
+- o recall foi **99% para morangos frescos** e **100% para morangos podres**;
+- o F1 macro foi **99,5%**.
 
 ## O que existe em cada pasta
 
@@ -73,7 +76,7 @@ Este repositório trabalha com dois formatos. Eles servem para experimentos dife
 
 ### 1. `datasetmorangonovo`: comparação e LMFCN original
 
-Este é o formato usado no resultado de **85%**. A pasta pode ficar em qualquer lugar do computador, desde que você informe o caminho no comando.
+Este é o formato usado no resultado de **99,5%**. A pasta pode ficar em qualquer lugar do computador, desde que você informe o caminho no comando.
 
 ```text
 datasetmorangonovo/
@@ -138,8 +141,19 @@ O resultado precisa mostrar pelo menos `setting1` e `test`.
   --dataset "C:\caminho\para\datasetmorangonovo" `
   --setting setting1 `
   --data-protocol external `
+  --epoch 5 --relax 10 --lr 1.0 --feature 16 `
+  --svclose 5 --wrclose 2 --shclose 0 `
+  --width 275 --height 183 `
+  --outdir ".\resultados_lmfcn_original\strawberry_out" `
+  --outfile strawberry_1 `
+  --batch 16 `
   --threads 4
 ```
+
+Esse é o equivalente local do comando fornecido pelo autor. O caminho Linux passado originalmente em
+`-i` apontava para a lista de treino dele. Aqui, `--dataset` permite que o executor crie duas listas
+automaticamente: `setting1` para treino e `test` para validação. Os parâmetros omitidos no comando
+continuam com os valores padrão do original: `gamma=1`, `shake=0`, `aug=1`, `norm=1` e `seed=0`.
 
 O parâmetro `external` significa exatamente isto:
 
@@ -151,12 +165,12 @@ test separado     -> validação
 Ao terminar, os arquivos serão gravados em:
 
 ```text
-datasetmorangonovo/resultados_lmfcn_original/setting1_external/
+resultados_lmfcn_original/strawberry_out/
 ```
 
 O arquivo mais importante é `resultados.json`, que contém as métricas de todas as épocas.
 
-> **Observação:** `modelo_final.pt` representa a última época. O histórico em `resultados.json` informa qual época teve a melhor validação. Na execução registrada neste repositório, a melhor foi a época 4.
+> **Observação:** `modelo_final.pt` representa a última época. O histórico em `resultados.json` informa qual época teve a melhor validação. Nesta execução, a última época também foi a melhor: época 5, com 99,5%.
 
 ## Executar a implementação modular
 
