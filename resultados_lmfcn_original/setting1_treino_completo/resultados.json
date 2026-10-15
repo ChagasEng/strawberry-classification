@@ -1,0 +1,112 @@
+{
+  "implementation": "codigo_jonathan/lmfcn (original, sem alteracoes)",
+  "compatibility_adapter": "device, manifests and artifact persistence only",
+  "setting": "setting1",
+  "data_protocol": "external",
+  "validation_source": "dataset/test",
+  "split_seed": 42,
+  "counts": {
+    "train_setting": {
+      "fresh": 600,
+      "rotten": 600
+    },
+    "dataset_test_used_for_validation": {
+      "fresh": 100,
+      "rotten": 100
+    }
+  },
+  "protocol": {
+    "epochs": 5,
+    "gamma": 1.0,
+    "relax": 1.0,
+    "learning_rate": 0.1,
+    "features": 2,
+    "shake": 0,
+    "svclose": 5,
+    "shclose": 0,
+    "wrclose": 1,
+    "width": 350,
+    "height": 230,
+    "augmentation": 1,
+    "normalization": 0,
+    "seed": 0,
+    "batch_size": 256
+  },
+  "environment": {
+    "python": "3.12.15",
+    "torch": "2.14.1+cpu",
+    "sklearn": "1.9.1",
+    "device": "cpu",
+    "threads": 4
+  },
+  "history": [
+    {
+      "train balanced acc": 0.6358333333333334,
+      "train acc": 0.6358333333333334,
+      "recall 0": 0.30333333333333334,
+      "recall 1": 0.9683333333333334,
+      "svs": 974,
+      "val balanced acc": 0.625,
+      "val acc": 0.625,
+      "val recall 0": 0.3,
+      "val recall 1": 0.95
+    },
+    {
+      "train balanced acc": 0.7316666666666667,
+      "train acc": 0.7316666666666667,
+      "recall 0": 0.6266666666666667,
+      "recall 1": 0.8366666666666667,
+      "svs": 775,
+      "val balanced acc": 0.735,
+      "val acc": 0.735,
+      "val recall 0": 0.62,
+      "val recall 1": 0.85
+    },
+    {
+      "train balanced acc": 0.7191666666666667,
+      "train acc": 0.7191666666666666,
+      "recall 0": 0.645,
+      "recall 1": 0.7933333333333333,
+      "svs": 843,
+      "val balanced acc": 0.75,
+      "val acc": 0.75,
+      "val recall 0": 0.74,
+      "val recall 1": 0.76
+    },
+    {
+      "train balanced acc": 0.8574999999999999,
+      "train acc": 0.8575,
+      "recall 0": 0.7983333333333333,
+      "recall 1": 0.9166666666666666,
+      "svs": 566,
+      "val balanced acc": 0.8500000000000001,
+      "val acc": 0.85,
+      "val recall 0": 0.79,
+      "val recall 1": 0.91
+    },
+    {
+      "train balanced acc": 0.7758333333333334,
+      "train acc": 0.7758333333333334,
+      "recall 0": 0.62,
+      "recall 1": 0.9316666666666666,
+      "svs": 747,
+      "val balanced acc": 0.71,
+      "val acc": 0.71,
+      "val recall 0": 0.54,
+      "val recall 1": 0.88
+    }
+  ],
+  "best_validation_epoch": 4,
+  "best_validation_metrics": {
+    "train balanced acc": 0.8574999999999999,
+    "train acc": 0.8575,
+    "recall 0": 0.7983333333333333,
+    "recall 1": 0.9166666666666666,
+    "svs": 566,
+    "val balanced acc": 0.8500000000000001,
+    "val acc": 0.85,
+    "val recall 0": 0.79,
+    "val recall 1": 0.91
+  },
+  "final_checkpoint_sha256": "a94f1d1778fe95e0ba55cb179c8ee136566cdcb8e85514a211da541ad64bf94a"
+}
