@@ -1,5 +1,7 @@
 # Classificação de morangos: fresco ou podre
 
+**********os resultados tao dentro da pasta datasetmorango novo*******
+
 Este projeto treina modelos de visão computacional para responder a uma pergunta simples:
 
 > **O morango da foto está fresco ou podre?**
